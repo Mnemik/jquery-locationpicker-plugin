@@ -109,7 +109,7 @@
                 if (status == google.maps.GeocoderStatus.OK && results.length > 0) {
                     var address = GmUtility.addressByFormat(results, gmapContext.settings.addressFormat);
                     gmapContext.locationName = address.formatted_address;
-                    gmapContext.addressComponents = GmUtility.address_component_from_google_geocode(address.address_components);
+                    gmapContext.addressComponents = GmUtility.address_component_from_google_geocode(address.address_components, gmapContext.settings.longNameComponents);
                 }else if (status == google.maps.GeocoderStatus.OVER_QUERY_LIMIT) {
                     return setTimeout(function () {
                         GmUtility.updateLocationName(gmapContext, callback);
@@ -120,37 +120,37 @@
                 }
             });
         },
-        address_component_from_google_geocode: function(address_components) {
+        address_component_from_google_geocode: function(address_components, long_name_components) {
             var result = {};
             for (var i = address_components.length-1; i>=0; i--) {
                 var component = address_components[i];
                 // Postal code
                 if (component.types.indexOf('postal_code') >= 0) {
-                    result.postalCode = component.short_name;
+                    result.postalCode = long_name_components.indexOf('postal_code') >= 0 ? component.long_name : component.short_name;
                 }
                 // Street number
                 else if (component.types.indexOf('street_number') >= 0) {
-                    result.streetNumber = component.short_name;
+                    result.streetNumber = long_name_components.indexOf('street_number') >= 0 ? component.long_name : component.short_name;
                 }
                 // Street name
                 else if (component.types.indexOf('route') >= 0) {
-                    result.streetName = component.short_name;
+                    result.streetName = long_name_components.indexOf('route') >= 0 ? component.long_name : component.short_name;
                 }
                 // City
                 else if (component.types.indexOf('locality') >= 0) {
-                    result.city = component.short_name;
+                    result.city = long_name_components.indexOf('locality') >= 0 ? component.long_name : component.short_name;
                 }
                 // District
                 else if (component.types.indexOf('sublocality') >= 0) {
-                    result.district = component.short_name;
+                    result.district = long_name_components.indexOf('sublocality') >= 0 ? component.long_name : component.short_name;
                 }
                 // State \ Province
                 else if (component.types.indexOf('administrative_area_level_1') >= 0) {
-                    result.stateOrProvince = component.short_name;
+                    result.stateOrProvince = long_name_components.indexOf('administrative_area_level_1') >= 0 ? component.long_name : component.short_name;
                 }
                 // State \ Province
                 else if (component.types.indexOf('country') >= 0) {
-                    result.country = component.short_name;
+                    result.country =long_name_components.indexOf('country') >= 0 ? component.long_name :  component.short_name;
                 }
             }
             result.addressLine1 = [result.streetNumber, result.streetName].join(' ').trim();
@@ -446,6 +446,7 @@
             radiusInput: null,
             locationNameInput: null
         },
+        longNameComponents: [],
         enableAutocomplete: false,
         enableAutocompleteBlur: false,
         autocompleteOptions: null,
